@@ -17,6 +17,10 @@ public:
   MapHandler(QSettings* settings, QObject* parent = NULL);
   ~MapHandler();
   void service(HttpRequest& request, HttpResponse& response);
+
+private:
+  void service_map(HttpRequest& request, HttpResponse& response);
+  void service_circle(HttpRequest& request, HttpResponse& response);
   QString docroot;
 
   void timerEvent(QTimerEvent *event) override;

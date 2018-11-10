@@ -38,6 +38,15 @@ MapHandler::~MapHandler()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
+//MapHandler::timerEvent
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MapHandler::timerEvent(QTimerEvent *)
+{
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 //MapHandler::service
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -57,38 +66,57 @@ void MapHandler::service(HttpRequest& request, HttpResponse& response)
     {
       response.write(file.read(65536));
     }
-    QString body;
-    std::ostringstream strm;
-    strm
-      << "<script>"
-      << "var layer_base = L.tileLayer(\n"
-      << "'http://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}@2x.png',{\n"
-      << "opacity: 1\n"
-      << "});\n"
-      << "var map = new L.Map('map', {\n"
-      << "center: new L.LatLng(38.9072, -77.0369),\n"
-      << "zoom: 13,\n"
-      << "layers: [layer_base]\n"
-      << "});\n"
-      << "var circle = L.circle([38.9072, -77.0369], {"
-      << "color: '#ff0000',"
-      << "stroke: false,"
-      << "radius : 500"
-      << "}).addTo(map);"
-      << "</script>";
-    body += tr(strm.str().c_str());
-    qDebug() << body;
-    response.write(strm.str().c_str());
   }
   file.close();
+  service_map(request, response);
+  service_circle(request, response);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-//MapHandler::timerEvent
+//MapHandler::service_map
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MapHandler::timerEvent(QTimerEvent *)
+void MapHandler::service_map(HttpRequest&, HttpResponse& response)
 {
-
+  QString body;
+  std::ostringstream strm;
+  strm
+    << "<script>"
+    << "var layer_base = L.tileLayer(\n"
+    << "'http://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}@2x.png',{\n"
+    << "opacity: 1\n"
+    << "});\n"
+    << "var map = new L.Map('map', {\n"
+    << "center: new L.LatLng(38.9072, -77.0369),\n"
+    << "zoom: 13,\n"
+    << "layers: [layer_base]\n"
+    << "});\n"
+    << "</script>";
+  body += strm.str().c_str();
+  qDebug() << body;
+  response.write(strm.str().c_str());
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+//MapHandler::service
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MapHandler::service_circle(HttpRequest&, HttpResponse& response)
+{
+  QString body;
+  std::ostringstream strm;
+  strm
+    << "<script>"
+    << "var circle = L.circle([38.9072, -77.0369], {"
+    << "color: '#ff0000',"
+    << "stroke: false,"
+    << "radius : 500"
+    << "}).addTo(map);"
+    << "</script>";
+  body += strm.str().c_str();
+  qDebug() << body;
+  response.write(strm.str().c_str());
+}
+
+
 
