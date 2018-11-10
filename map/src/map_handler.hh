@@ -20,9 +20,8 @@ public:
 
 private:
   void service_map(HttpRequest& request, HttpResponse& response);
-  void service_circle(HttpRequest& request, HttpResponse& response);
+  void service_circle(HttpRequest& request, HttpResponse& response, int radius);
   QString docroot;
-
   void timerEvent(QTimerEvent *event) override;
   QBasicTimer timer;
 };

@@ -69,7 +69,7 @@ void MapHandler::service(HttpRequest& request, HttpResponse& response)
   }
   file.close();
   service_map(request, response);
-  service_circle(request, response);
+  service_circle(request, response, 300);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -101,7 +101,7 @@ void MapHandler::service_map(HttpRequest&, HttpResponse& response)
 //MapHandler::service
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MapHandler::service_circle(HttpRequest&, HttpResponse& response)
+void MapHandler::service_circle(HttpRequest&, HttpResponse& response, int radius)
 {
   QString body;
   std::ostringstream strm;
@@ -110,7 +110,9 @@ void MapHandler::service_circle(HttpRequest&, HttpResponse& response)
     << "var circle = L.circle([38.9072, -77.0369], {"
     << "color: '#ff0000',"
     << "stroke: false,"
-    << "radius : 500"
+    << "radius : "
+    << std::to_string(radius);
+  strm
     << "}).addTo(map);"
     << "</script>";
   body += strm.str().c_str();
