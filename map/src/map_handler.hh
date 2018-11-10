@@ -25,6 +25,7 @@ private:
   QString docroot;
   void timerEvent(QTimerEvent *event) override;
   QBasicTimer timer;
+  bool ini;
 };
 
 #endif // _MAP_HANDLER_H

@@ -9,7 +9,8 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 MapHandler::MapHandler(QSettings* settings, QObject* parent) :
-  HttpRequestHandler(parent)
+  HttpRequestHandler(parent),
+  ini(true)
 {
   docroot = settings->value("path", ".").toString();
   if (!(docroot.startsWith(":/") || docroot.startsWith("qrc://")))
@@ -52,25 +53,39 @@ void MapHandler::timerEvent(QTimerEvent *)
 
 void MapHandler::service(HttpRequest& request, HttpResponse& response)
 {
-  QByteArray path = request.getPath();
-  if (QFileInfo(docroot + path).isDir())
+  if (ini)
   {
-    path += "/index.leaflet.html";
-  }
-  QFile file(docroot + path);
-  qDebug("MapHandler::service: Open file %s", qPrintable(file.fileName()));
-  if (file.open(QIODevice::ReadOnly))
-  {
-    qDebug("MapHandler::service: Opened file %s", qPrintable(file.fileName()));
-    while (!file.atEnd() && !file.error())
+    ini = false;
+    QByteArray path = request.getPath();
+    if (QFileInfo(docroot + path).isDir())
     {
-      response.write(file.read(65536));
+      path += "/index.leaflet.html";
     }
+    QFile file(docroot + path);
+    qDebug("MapHandler::service: Open file %s", qPrintable(file.fileName()));
+    if (file.open(QIODevice::ReadOnly))
+    {
+      qDebug("MapHandler::service: Opened file %s", qPrintable(file.fileName()));
+      while (!file.atEnd() && !file.error())
+      {
+        response.write(file.read(65536));
+      }
+    }
+    file.close();
+    service_map(response);
+    service_circle(response, 300);
+    service_realtime(response);
   }
-  file.close();
-  service_map(response);
-  service_circle(response, 300);
-  service_realtime(response);
+  else
+  {
+    QString body;
+    std::ostringstream strm;
+    strm
+      << "{\"geometry\": {\"type\": \"Point\", \"coordinates\": [-77.0369, 38.9072]}, \"type\": \"Feature\", \"properties\": {}}";
+    body += strm.str().c_str();
+    qDebug() << body;
+    response.write(strm.str().c_str());
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -132,11 +147,11 @@ void MapHandler::service_realtime(HttpResponse& response)
   std::ostringstream strm;
   strm
     << "<script>"
-    << "var realtime = L.realtime('https://wanderdrone.appspot.com/', {"
+    << "var realtime = L.realtime('http://127.0.0.1:8080/', {"
     << "interval: 5 * 1000"
     << "}).addTo(map);"
     << "realtime.on('update', function() {"
-    << "map.fitBounds(realtime.getBounds(), {maxZoom: 3});"
+    << "map.fitBounds(realtime.getBounds(), {maxZoom: 13});"
     << "});"
     << "</script>";
   body += strm.str().c_str();
