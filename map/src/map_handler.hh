@@ -19,8 +19,9 @@ public:
   void service(HttpRequest& request, HttpResponse& response);
 
 private:
-  void service_map(HttpRequest& request, HttpResponse& response);
-  void service_circle(HttpRequest& request, HttpResponse& response, int radius);
+  void service_map(HttpResponse& response);
+  void service_circle(HttpResponse& response, int radius);
+  void service_realtime(HttpResponse& response);
   QString docroot;
   void timerEvent(QTimerEvent *event) override;
   QBasicTimer timer;

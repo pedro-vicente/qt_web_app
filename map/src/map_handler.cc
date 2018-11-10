@@ -68,15 +68,16 @@ void MapHandler::service(HttpRequest& request, HttpResponse& response)
     }
   }
   file.close();
-  service_map(request, response);
-  service_circle(request, response, 300);
+  service_map(response);
+  service_circle(response, 300);
+  service_realtime(response);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 //MapHandler::service_map
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MapHandler::service_map(HttpRequest&, HttpResponse& response)
+void MapHandler::service_map(HttpResponse& response)
 {
   QString body;
   std::ostringstream strm;
@@ -98,10 +99,10 @@ void MapHandler::service_map(HttpRequest&, HttpResponse& response)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-//MapHandler::service
+//MapHandler::service_circle
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void MapHandler::service_circle(HttpRequest&, HttpResponse& response, int radius)
+void MapHandler::service_circle(HttpResponse& response, int radius)
 {
   QString body;
   std::ostringstream strm;
@@ -121,4 +122,25 @@ void MapHandler::service_circle(HttpRequest&, HttpResponse& response, int radius
 }
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+//MapHandler::service_realtime
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MapHandler::service_realtime(HttpResponse& response)
+{
+  QString body;
+  std::ostringstream strm;
+  strm
+    << "<script>"
+    << "var realtime = L.realtime('https://wanderdrone.appspot.com/', {"
+    << "interval: 5 * 1000"
+    << "}).addTo(map);"
+    << "realtime.on('update', function() {"
+    << "map.fitBounds(realtime.getBounds(), {maxZoom: 3});"
+    << "});"
+    << "</script>";
+  body += strm.str().c_str();
+  qDebug() << body;
+  response.write(strm.str().c_str());
+}
 
