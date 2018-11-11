@@ -2,6 +2,8 @@
 #include <QDir>
 #include <QDateTime>
 #include <sstream>
+#include <stdlib.h>
+#include <time.h>
 #include "map_handler.hh"
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -12,6 +14,7 @@ MapHandler::MapHandler(QSettings* settings, QObject* parent) :
   HttpRequestHandler(parent),
   ini(true)
 {
+  srand(time(NULL));
   docroot = settings->value("path", ".").toString();
   if (!(docroot.startsWith(":/") || docroot.startsWith("qrc://")))
   {
@@ -73,17 +76,24 @@ void MapHandler::service(HttpRequest& request, HttpResponse& response)
     }
     file.close();
     service_map(response);
-    service_circle(response, 300);
     service_realtime(response);
   }
   else
   {
+    //To be able to figure out when new features are added, when old features are removed, 
+    //and which features are just updated, Leaflet Realtime needs to identify each feature uniquely. 
+    //This is done using a feature id. Usually, this can be done using one of the feature's properties.
+    //By default, Leaflet Realtime will try to look for a called property id and use that.
     QString body;
+    int r = rand() % 1000 + 1;
     std::ostringstream strm;
     strm
       << "{\"geometry\": {\"type\": \"Point\", \"coordinates\": [-77.0369, 38.9072]},"
       << "\"type\": \"Feature\", \"properties\": "
-      << "{\"radius\": \"500\"}}";
+      << "{\"id\": \"";
+    strm << std::to_string(r);
+    strm
+      << "\"}}";
     body += strm.str().c_str();
     qDebug() << body;
     response.write(strm.str().c_str());
@@ -128,7 +138,7 @@ void MapHandler::service_circle(HttpResponse& response, int radius)
     << "var circle = L.circle([38.9072, -77.0369], {"
     << "color: '#ff0000',"
     << "stroke: false,"
-    << "radius : "
+    << "radius: "
     << std::to_string(radius);
   strm
     << "}).addTo(map);"
@@ -151,12 +161,19 @@ void MapHandler::service_realtime(HttpResponse& response)
     << "<script>"
     << "var realtime = L.realtime('http://127.0.0.1:8080/', {"
     << "interval: 4 * 1000,"
+    //add popup to default marker
     << "onEachFeature(f, l) {"
     << "  l.bindPopup(function() {"
-    << "    return f.properties.radius;"
-    << "  });"
-    << " }"
-    << "}).addTo(map);"
+    << "    return f.properties.id;"
+    << "  });\n"
+    //add circle
+    << "  var circle = L.circle([38.9072, -77.0369], {"
+    << "    color: '#ff0000',"
+    << "    stroke: false,"
+    << "    radius: f.properties.id"
+    << "  }).addTo(map);"
+    << " }\n"
+    << "}).addTo(map);\n"
     << "realtime.on('update', function() {"
     << "map.fitBounds(realtime.getBounds(), {maxZoom: 13});"
     << "});"
