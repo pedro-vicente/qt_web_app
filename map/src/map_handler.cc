@@ -81,7 +81,9 @@ void MapHandler::service(HttpRequest& request, HttpResponse& response)
     QString body;
     std::ostringstream strm;
     strm
-      << "{\"geometry\": {\"type\": \"Point\", \"coordinates\": [-77.0369, 38.9072]}, \"type\": \"Feature\", \"properties\": {}}";
+      << "{\"geometry\": {\"type\": \"Point\", \"coordinates\": [-77.0369, 38.9072]},"
+      << "\"type\": \"Feature\", \"properties\": "
+      << "{\"radius\": \"500\"}}";
     body += strm.str().c_str();
     qDebug() << body;
     response.write(strm.str().c_str());
@@ -148,7 +150,12 @@ void MapHandler::service_realtime(HttpResponse& response)
   strm
     << "<script>"
     << "var realtime = L.realtime('http://127.0.0.1:8080/', {"
-    << "interval: 5 * 1000"
+    << "interval: 4 * 1000,"
+    << "onEachFeature(f, l) {"
+    << "  l.bindPopup(function() {"
+    << "    return f.properties.radius;"
+    << "  });"
+    << " }"
     << "}).addTo(map);"
     << "realtime.on('update', function() {"
     << "map.fitBounds(realtime.getBounds(), {maxZoom: 13});"
@@ -158,4 +165,3 @@ void MapHandler::service_realtime(HttpResponse& response)
   qDebug() << body;
   response.write(strm.str().c_str());
 }
-
