@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
   QString path = QCoreApplication::applicationDirPath();
   path += "/../etc";
   QString file_name_config;
-  QFile file(path + "/" + "config.ini");
+  QFile file(path + "/" + "map_config.ini");
   if (file.exists())
   {
     file_name_config = QDir(file.fileName()).canonicalPath();

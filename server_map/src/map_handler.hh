@@ -1,9 +1,13 @@
 #ifndef _MAP_HANDLER_H
 #define _MAP_HANDLER_H
 #include "httprequesthandler.h"
-#include <QBasicTimer>
 
 using namespace stefanfrings;
+
+enum class tile_provider_t
+{
+  CARTODB, MAPBOX
+};
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 //MapHandler
@@ -23,9 +27,7 @@ private:
   void service_circle(HttpResponse& response, int radius);
   void service_realtime(HttpResponse& response);
   QString docroot;
-  void timerEvent(QTimerEvent *event) override;
-  QBasicTimer timer;
-  bool ini;
+  QString encoding;
 };
 
 #endif // _MAP_HANDLER_H
